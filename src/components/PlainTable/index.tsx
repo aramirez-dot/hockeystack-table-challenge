@@ -16,7 +16,6 @@ const defaultCellFormatter = (value: unknown) => (value ? String(value) : "-");
 const determineCellValue = (row: Row, column: Column): unknown => {
   // Using the column's getter
   if ("getter" in column) {
-    console.log("hey");
     const { getter } = column;
     if (getter) {
       return getter(row);
@@ -50,24 +49,45 @@ export const PlainTable: React.FC<PlainTableProps> = ({ columns, rows }) => {
     // eslint-disable-next-line react/display-name
     (row: Row) => (column: Column) => {
       const value = determineCellValue(row, column);
-      return <td key={randomUUID()}>{formatCellValue(value, column)}</td>;
+      return (
+        <td
+          key={randomUUID()}
+          className={`first:pl-10 last:pr-10 ${column.className} py-3`}
+        >
+          {formatCellValue(value, column)}
+        </td>
+      );
     },
     []
   );
 
   const renderTableRow = useCallback(
-    (row: Row) => <tr key={randomUUID()}>{columns.map(renderRowCell(row))}</tr>,
+    (row: Row) => (
+      <tr
+        key={randomUUID()}
+        className="hover:bg-slate-100 hover:dark:bg-slate-800 border-t border-slate-200 dark:border-slate-800"
+      >
+        {columns.map(renderRowCell(row))}
+      </tr>
+    ),
     [columns, renderRowCell]
   );
 
   const renderTableColumn = useCallback(
-    (column: Column) => <th key={randomUUID()}>{column.name}</th>,
+    (column: Column) => (
+      <th
+        key={randomUUID()}
+        className={`first:pl-10 last:pr-10 ${column.className} py-4`}
+      >
+        {column.name}
+      </th>
+    ),
     []
   );
 
   return (
-    <table>
-      <thead>
+    <table className="table-fixed w-screen bg-slate-50 dark:bg-slate-900">
+      <thead className="text-sm bg-slate-300 dark:bg-slate-950">
         <tr>{columns.map(renderTableColumn)}</tr>
       </thead>
       <tbody>{rows.map(renderTableRow)}</tbody>

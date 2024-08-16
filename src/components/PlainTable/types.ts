@@ -7,6 +7,7 @@ export type Column = {
   field?: string;
   getter?: Getter;
   formatter?: Formatter;
+  className?: string;
 };
 
 export type Row<T = any> = T;
