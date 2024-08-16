@@ -7,9 +7,17 @@ export type Column = {
   field?: string;
   getter?: Getter;
   formatter?: Formatter;
-  className?: string;
+  align?: "left" | "right";
 };
 
 export type Row<T = any> = T;
 
 export type Rows = Row[];
+
+export type ComputedRow = Record<string, unknown>;
+
+export type ComputedRows = ComputedRow[];
+
+export type SortDirection = "ASC" | "DESC";
+
+export type FieldSort = Record<string, SortDirection>;

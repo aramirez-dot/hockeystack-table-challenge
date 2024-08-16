@@ -1,11 +1,20 @@
-import React, { useCallback } from "react";
-import { randomUUID } from "crypto";
+"use client";
+import React, { useCallback, useMemo, useState } from "react";
+import classNames from "classnames";
 
-import { Column, Row, Rows } from "./types";
+import {
+  Column,
+  ComputedRow,
+  ComputedRows,
+  FieldSort,
+  Row,
+  Rows,
+} from "./types";
 
 type PlainTableProps = {
   columns: Column[];
   rows: Rows;
+  rowsPerPage?: number;
 };
 
 const defaultCellFormatter = (value: unknown) => (value ? String(value) : "-");
@@ -44,15 +53,79 @@ const formatCellValue = (value: unknown, column: Column) => {
   return defaultCellFormatter(value);
 };
 
-export const PlainTable: React.FC<PlainTableProps> = ({ columns, rows }) => {
+export const PlainTable: React.FC<PlainTableProps> = ({
+  columns,
+  rows,
+  rowsPerPage = 10,
+}) => {
+  const [fieldSort, setFieldSort] = useState<FieldSort>();
+
+  const [field, direction] = useMemo(
+    () => (fieldSort ? Object.entries(fieldSort)[0] : []),
+    [fieldSort]
+  );
+
+  // We compute rows with derived values for correct
+  // sorting.
+  const computedRows = useMemo(() => {
+    const newRows: ComputedRows = [];
+    rows.forEach((row) => {
+      const newRow: ComputedRow = {};
+      columns.forEach(
+        (column) => (newRow[column.name] = determineCellValue(row, column))
+      );
+      newRows.push(newRow);
+    });
+    return newRows;
+  }, [rows, columns]);
+
+  const sortedRows = useMemo(() => {
+    if (!field) {
+      return computedRows;
+    }
+    if (direction === "ASC") {
+      return computedRows.sort((a, b) => (b[field] as any) - (a[field] as any));
+    }
+
+    if (direction === "DESC") {
+      return computedRows.sort((a, b) => (a[field] as any) - (b[field] as any));
+    }
+
+    return computedRows;
+  }, [computedRows, fieldSort]);
+
+  const sortField = useCallback(
+    (field: string) => {
+      if (!fieldSort) {
+        setFieldSort({ [field]: "ASC" });
+        return;
+      }
+
+      if (field in fieldSort) {
+        const sort = fieldSort[field];
+        if (sort === "ASC") {
+          setFieldSort({ [field]: "DESC" });
+        } else {
+          setFieldSort(undefined);
+        }
+      } else {
+        setFieldSort({ [field]: "ASC" });
+      }
+    },
+    [fieldSort]
+  );
+
   const renderRowCell = useCallback(
     // eslint-disable-next-line react/display-name
-    (row: Row) => (column: Column) => {
-      const value = determineCellValue(row, column);
+    (row: ComputedRow) => (column: Column, index: number) => {
+      const value = row[column.name];
       return (
         <td
-          key={randomUUID()}
-          className={`first:pl-10 last:pr-10 ${column.className} py-3`}
+          key={String(index)}
+          className={classNames("first:pl-10 last:pr-10 py-3", {
+            ["text-left"]: column.align === "left",
+            ["text-right"]: column.align === "right",
+          })}
         >
           {formatCellValue(value, column)}
         </td>
@@ -62,9 +135,9 @@ export const PlainTable: React.FC<PlainTableProps> = ({ columns, rows }) => {
   );
 
   const renderTableRow = useCallback(
-    (row: Row) => (
+    (row: ComputedRow, index: number) => (
       <tr
-        key={randomUUID()}
+        key={String(index)}
         className="hover:bg-slate-100 hover:dark:bg-slate-800 border-t border-slate-200 dark:border-slate-800"
       >
         {columns.map(renderRowCell(row))}
@@ -74,15 +147,30 @@ export const PlainTable: React.FC<PlainTableProps> = ({ columns, rows }) => {
   );
 
   const renderTableColumn = useCallback(
-    (column: Column) => (
+    (column: Column, index: number) => (
       <th
-        key={randomUUID()}
-        className={`first:pl-10 last:pr-10 ${column.className} py-4`}
+        key={String(index)}
+        className="select-none cursor-pointer first:pl-10 last:pr-10 py-4"
+        onClick={() => sortField(column.name)}
       >
-        {column.name}
+        <div
+          className={classNames("flex flex-row items-center gap-1", {
+            ["justify-start"]: column.align === "left",
+            ["justify-end"]: column.align === "right",
+          })}
+        >
+          {fieldSort && column.name in fieldSort && (
+            <span className="material-symbols-rounded text-sm">
+              {fieldSort[column.name] === "ASC"
+                ? "arrow_upward"
+                : "arrow_downward"}
+            </span>
+          )}
+          {column.name}
+        </div>
       </th>
     ),
-    []
+    [sortField]
   );
 
   return (
@@ -90,7 +178,7 @@ export const PlainTable: React.FC<PlainTableProps> = ({ columns, rows }) => {
       <thead className="text-sm bg-slate-300 dark:bg-slate-950">
         <tr>{columns.map(renderTableColumn)}</tr>
       </thead>
-      <tbody>{rows.map(renderTableRow)}</tbody>
+      <tbody>{sortedRows.map(renderTableRow)}</tbody>
     </table>
   );
 };
