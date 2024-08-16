@@ -2,55 +2,13 @@
 import React, { useCallback, useMemo, useState } from "react";
 import classNames from "classnames";
 
-import {
-  Column,
-  ComputedRow,
-  ComputedRows,
-  FieldSort,
-  Row,
-  Rows,
-} from "./types";
+import { Column, ComputedRow, ComputedRows, FieldSort, Rows } from "./types";
+import { determineCellValue, formatCellValue } from "./helpers";
 
 type PlainTableProps = {
   columns: Column[];
   rows: Rows;
   rowsPerPage?: number;
-};
-
-const defaultCellFormatter = (value: unknown) => (value ? String(value) : "-");
-
-// We can either render cell values using a given field from the row object
-// and the optional field property from the column object or use the getter
-// field from the column object to return computed values.
-const determineCellValue = (row: Row, column: Column): unknown => {
-  // Using the column's getter
-  if ("getter" in column) {
-    const { getter } = column;
-    if (getter) {
-      return getter(row);
-    }
-  }
-
-  // Using the field property
-  if ("field" in column) {
-    const { field } = column;
-    if (field && field in row) {
-      return row[field];
-    }
-  }
-
-  return;
-};
-
-const formatCellValue = (value: unknown, column: Column) => {
-  if ("formatter" in column) {
-    const { formatter } = column;
-    if (formatter) {
-      return formatter(value);
-    }
-  }
-
-  return defaultCellFormatter(value);
 };
 
 export const PlainTable: React.FC<PlainTableProps> = ({
@@ -136,13 +94,10 @@ export const PlainTable: React.FC<PlainTableProps> = ({
       return (
         <td
           key={String(index)}
-          className={classNames(
-            "break-words first:pl-10 last:pr-10 px-5 py-3",
-            {
-              ["text-left"]: column.align === "left",
-              ["text-right"]: column.align === "right",
-            }
-          )}
+          className={classNames("break-words first:pl-5 last:pr-5 px-5 py-3", {
+            ["text-left"]: column.align === "left",
+            ["text-right"]: column.align === "right",
+          })}
         >
           {formatCellValue(value, column)}
         </td>
@@ -167,7 +122,7 @@ export const PlainTable: React.FC<PlainTableProps> = ({
     (column: Column, index: number) => (
       <th
         key={String(index)}
-        className="select-none cursor-pointer first:pl-10 last:pr-10 px-5 py-4 border-r border-slate-200 dark:border-slate-800"
+        className="select-none cursor-pointer uppercase first:pl-5 last:pr-5 px-5 py-4 last:border-none border-r border-slate-200 dark:border-slate-800"
         onClick={() => sortField(column.name)}
       >
         <div
@@ -177,13 +132,13 @@ export const PlainTable: React.FC<PlainTableProps> = ({
           })}
         >
           {fieldSort && column.name in fieldSort && (
-            <span className="material-symbols-rounded text-sm">
-              {fieldSort[column.name] === "ASC"
-                ? "arrow_upward"
-                : "arrow_downward"}
+            <span className="material-symbols-rounded">
+              {fieldSort[column.name] === "DESC"
+                ? "keyboard_arrow_up"
+                : "keyboard_arrow_down"}
             </span>
           )}
-          {column.name}
+          <span className="text-xs">{column.name}</span>
         </div>
       </th>
     ),
@@ -192,28 +147,54 @@ export const PlainTable: React.FC<PlainTableProps> = ({
 
   return (
     <div>
-      <div className="select-none flex">
-        <div onClick={() => setPage((page) => (page !== 0 ? page - 1 : page))}>
-          <span className="material-symbols-rounded">chevron_left</span>
+      <div className="flex flex-row justify-end items-center">
+        <div className="flex  gap-x-4">
+          <div>Go to page:</div>
+          <div>
+            <input
+              type="number"
+              defaultValue={page + 1}
+              className="bg-transparent border-none"
+              min={1}
+              max={totalPages}
+              onBlur={(ev) =>
+                setPage(
+                  Math.min(
+                    Math.max(Number(ev.currentTarget.value) - 1, 0),
+                    totalPages - 1
+                  )
+                )
+              }
+            />
+          </div>
         </div>
-        <div className="flex gap-x-2">
-          <input
-            className="w-6 text-right bg-transparent border-none"
-            defaultValue={page + 1}
-            onBlur={(ev) => setPage((Number(ev.target.value) || 1) - 1)}
-          />
-          <div className="flex items-center">/</div>
-          <div className="w-6 flex items-center">{totalPages}</div>
-        </div>
-        <div
-          onClick={() =>
-            setPage((page) => (page + 1 < totalPages ? page + 1 : page))
-          }
-        >
-          <span className="material-symbols-rounded">chevron_right</span>
+        <div className="select-none flex px-4 py-8">
+          <div
+            className="flex items-center justify-center cursor-pointer rounded-full bg-slate-300 hover:bg-slate-400 active:bg-slate-300 dark:bg-slate-900 hover:dark:bg-slate-800 active:dark:bg-slate-900 border border-slate-400 dark:border-slate-800 w-8 h-8"
+            onClick={() => setPage((page) => (page !== 0 ? page - 1 : page))}
+          >
+            <span className="material-symbols-rounded">chevron_left</span>
+          </div>
+          <div className="flex gap-x-2 px-3">
+            <div className="w-6 flex items-center justify-center">
+              {page + 1}
+            </div>
+            <div className="flex items-center justify-center">/</div>
+            <div className="w-6 flex items-center justify-center">
+              {totalPages}
+            </div>
+          </div>
+          <div
+            className="flex items-center justify-center cursor-pointer rounded-full bg-slate-300 hover:bg-slate-400 active:bg-slate-300 dark:bg-slate-900 hover:dark:bg-slate-800 active:dark:bg-slate-900 border border-slate-400 dark:border-slate-800 w-8 h-8"
+            onClick={() =>
+              setPage((page) => (page + 1 < totalPages ? page + 1 : page))
+            }
+          >
+            <span className="material-symbols-rounded">chevron_right</span>
+          </div>
         </div>
       </div>
-      <table className="table-auto w-screen bg-slate-50 dark:bg-slate-900">
+      <table className="table-auto w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700">
         <thead className="text-sm bg-slate-300 dark:bg-slate-950">
           <tr>{columns.map(renderTableColumn)}</tr>
         </thead>
