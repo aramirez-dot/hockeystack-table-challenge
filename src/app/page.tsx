@@ -1,4 +1,4 @@
-import { PlainTable } from "@/components/PlainTable";
+import { Table } from "@/components/Table";
 import { Column, SortDirection } from "@/components/PlainTable/types";
 import { percentageFormatter } from "@/components/PlainTable/helpers";
 import { PagesResponse } from "@/app/api/pages/route";
@@ -54,5 +54,5 @@ export default async function Home() {
     await fetch("http://localhost:3000/api/pages")
   ).json();
 
-  return <PlainTable columns={COLUMNS} rows={pages} />;
+  return <Table columns={COLUMNS} rows={pages} />;
 }
