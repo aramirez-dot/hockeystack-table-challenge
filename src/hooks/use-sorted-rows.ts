@@ -2,7 +2,7 @@ import { useCallback, useMemo, useState } from "react";
 
 import { FieldSort, Rows } from "@/components/Table/types";
 
-export const useSortedData = (rows: Rows) => {
+export const useSortedRows = (rows: Rows) => {
   const [fieldSort, setFieldSort] = useState<FieldSort>();
 
   const sorting = useMemo(

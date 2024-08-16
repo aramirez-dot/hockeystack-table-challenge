@@ -4,7 +4,8 @@ import classNames from "classnames";
 
 import { Column, ComputedRow, ComputedRows, FieldSort, Rows } from "./types";
 import { determineCellValue, formatCellValue } from "./helpers";
-import { useSortedData } from "../../hooks/use-sorted-data";
+import { useSortedRows } from "../../hooks/use-sorted-rows";
+import { usePaginatedRows } from "../../hooks/use-paginated-rows";
 
 type TableProps = {
   columns: Column[];
@@ -17,8 +18,6 @@ export const Table: React.FC<TableProps> = ({
   rows,
   rowsPerPage = 10,
 }) => {
-  const [page, setPage] = useState<number>(0);
-
   const computedRows = useMemo(() => {
     const newRows: ComputedRows = [];
     rows.forEach((row) => {
@@ -35,19 +34,16 @@ export const Table: React.FC<TableProps> = ({
     sorting: [field, direction],
     sortField,
     sortedRows,
-  } = useSortedData(computedRows);
+  } = useSortedRows(computedRows);
+
+  const { setPage, currentPage, totalPages, paginatedRows } = usePaginatedRows(
+    sortedRows,
+    field,
+    direction,
+    rowsPerPage
+  );
 
   // --- Data setup
-
-  const totalPages = useMemo(
-    () => Math.ceil(rows.length / rowsPerPage),
-    [rows, rowsPerPage]
-  );
-
-  const paginatedRows = useMemo(
-    () => sortedRows.slice(rowsPerPage * page, rowsPerPage * (page + 1)),
-    [sortedRows, page, field, direction]
-  );
 
   // --- Renderers
   const renderRowCell = useCallback(
@@ -116,7 +112,7 @@ export const Table: React.FC<TableProps> = ({
           <div>
             <input
               type="number"
-              defaultValue={page + 1}
+              defaultValue={currentPage + 1}
               className="bg-transparent border-none"
               min={1}
               max={totalPages}
@@ -140,7 +136,7 @@ export const Table: React.FC<TableProps> = ({
           </div>
           <div className="flex gap-x-2 px-3">
             <div className="w-6 flex items-center justify-center">
-              {page + 1}
+              {currentPage + 1}
             </div>
             <div className="flex items-center justify-center">/</div>
             <div className="w-6 flex items-center justify-center">
