@@ -1,6 +1,6 @@
-import { Table } from "@/components/Table";
-import { Column } from "@/components/Table/types";
-import { percentageFormatter } from "@/components/Table/helpers";
+import { PlainTable } from "@/components/PlainTable";
+import { Column } from "@/components/PlainTable/types";
+import { percentageFormatter } from "@/components/PlainTable/helpers";
 import { PagesResponse } from "@/app/api/pages/route";
 import { computeBounce } from "@/app/helpers";
 
@@ -54,5 +54,5 @@ export default async function Home() {
     await fetch("http://localhost:3000/api/pages")
   ).json();
 
-  return <Table columns={COLUMNS} rows={pages} />;
+  return <PlainTable columns={COLUMNS} rows={pages} />;
 }

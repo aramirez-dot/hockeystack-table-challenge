@@ -15,15 +15,26 @@ export const useSortedRows = (rows: Rows) => {
     if (!field) {
       return rows;
     }
-    if (direction === "ASC") {
-      return rows.sort((a, b) => (b[field] as any) - (a[field] as any));
-    }
 
-    if (direction === "DESC") {
-      return rows.sort((a, b) => (a[field] as any) - (b[field] as any));
-    }
+    return rows.sort((a, b) => {
+      if (typeof a[field] === "string") {
+        if (direction === "ASC") {
+          return String(b[field]).localeCompare(String(a[field]));
+        } else {
+          return String(a[field]).localeCompare(String(b[field]));
+        }
+      }
 
-    return rows;
+      if (typeof a[field] === "number") {
+        if (direction === "ASC") {
+          return b[field] - a[field];
+        } else {
+          return a[field] - b[field];
+        }
+      }
+
+      return 0;
+    });
   }, [rows, fieldSort]);
 
   const sortField = useCallback(

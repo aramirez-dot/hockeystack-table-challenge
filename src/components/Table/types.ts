@@ -1,4 +1,4 @@
-export type Getter = (row: Row) => string;
+export type Getter = (row: Row) => string | number;
 
 export type Formatter = (value: any) => string;
 
