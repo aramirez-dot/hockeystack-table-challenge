@@ -3,8 +3,8 @@ import React, { useCallback, useMemo } from "react";
 
 import { Column, ComputedRow, ComputedRows, Rows } from "./types";
 import { determineCellValue } from "./helpers";
-import { useSortedRows } from "../../hooks/use-sorted-rows";
-import { usePaginatedRows } from "../../hooks/use-paginated-rows";
+import { useSortedRows } from "./hooks/use-sorted-rows";
+import { usePaginatedRows } from "./hooks/use-paginated-rows";
 import { tableContext } from "./context";
 import { TableRow } from "./components/TableRow";
 import { ColumnCell } from "./components/ColumnCell";
