@@ -58,11 +58,18 @@ export const PlainTable: React.FC<PlainTableProps> = ({
   rows,
   rowsPerPage = 10,
 }) => {
+  const [page, setPage] = useState<number>(0);
   const [fieldSort, setFieldSort] = useState<FieldSort>();
 
+  // --- Data setup
   const [field, direction] = useMemo(
     () => (fieldSort ? Object.entries(fieldSort)[0] : []),
     [fieldSort]
+  );
+
+  const totalPages = useMemo(
+    () => Math.ceil(rows.length / rowsPerPage),
+    [rows, rowsPerPage]
   );
 
   // We compute rows with derived values for correct
@@ -94,6 +101,12 @@ export const PlainTable: React.FC<PlainTableProps> = ({
     return computedRows;
   }, [computedRows, fieldSort]);
 
+  const paginatedRows = useMemo(
+    () => sortedRows.slice(rowsPerPage * page, rowsPerPage * (page + 1)),
+    [sortedRows, page, fieldSort]
+  );
+
+  // --- Handlers
   const sortField = useCallback(
     (field: string) => {
       if (!fieldSort) {
@@ -115,6 +128,7 @@ export const PlainTable: React.FC<PlainTableProps> = ({
     [fieldSort]
   );
 
+  // --- Renderers
   const renderRowCell = useCallback(
     // eslint-disable-next-line react/display-name
     (row: ComputedRow) => (column: Column, index: number) => {
@@ -122,10 +136,13 @@ export const PlainTable: React.FC<PlainTableProps> = ({
       return (
         <td
           key={String(index)}
-          className={classNames("first:pl-10 last:pr-10 py-3", {
-            ["text-left"]: column.align === "left",
-            ["text-right"]: column.align === "right",
-          })}
+          className={classNames(
+            "break-words first:pl-10 last:pr-10 px-5 py-3",
+            {
+              ["text-left"]: column.align === "left",
+              ["text-right"]: column.align === "right",
+            }
+          )}
         >
           {formatCellValue(value, column)}
         </td>
@@ -150,7 +167,7 @@ export const PlainTable: React.FC<PlainTableProps> = ({
     (column: Column, index: number) => (
       <th
         key={String(index)}
-        className="select-none cursor-pointer first:pl-10 last:pr-10 py-4"
+        className="select-none cursor-pointer first:pl-10 last:pr-10 px-5 py-4 border-r border-slate-200 dark:border-slate-800"
         onClick={() => sortField(column.name)}
       >
         <div
@@ -174,11 +191,34 @@ export const PlainTable: React.FC<PlainTableProps> = ({
   );
 
   return (
-    <table className="table-fixed w-screen bg-slate-50 dark:bg-slate-900">
-      <thead className="text-sm bg-slate-300 dark:bg-slate-950">
-        <tr>{columns.map(renderTableColumn)}</tr>
-      </thead>
-      <tbody>{sortedRows.map(renderTableRow)}</tbody>
-    </table>
+    <div>
+      <div className="select-none flex">
+        <div onClick={() => setPage((page) => (page !== 0 ? page - 1 : page))}>
+          <span className="material-symbols-rounded">chevron_left</span>
+        </div>
+        <div className="flex gap-x-2">
+          <input
+            className="w-6 text-right bg-transparent border-none"
+            defaultValue={page + 1}
+            onBlur={(ev) => setPage((Number(ev.target.value) || 1) - 1)}
+          />
+          <div className="flex items-center">/</div>
+          <div className="w-6 flex items-center">{totalPages}</div>
+        </div>
+        <div
+          onClick={() =>
+            setPage((page) => (page + 1 < totalPages ? page + 1 : page))
+          }
+        >
+          <span className="material-symbols-rounded">chevron_right</span>
+        </div>
+      </div>
+      <table className="table-auto w-screen bg-slate-50 dark:bg-slate-900">
+        <thead className="text-sm bg-slate-300 dark:bg-slate-950">
+          <tr>{columns.map(renderTableColumn)}</tr>
+        </thead>
+        <tbody>{paginatedRows.map(renderTableRow)}</tbody>
+      </table>
+    </div>
   );
 };
