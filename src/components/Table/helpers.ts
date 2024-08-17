@@ -15,7 +15,7 @@ export const determineCellValue = (row: Row, column: Column): unknown => {
   // Using the column's getter
   if ("getter" in column) {
     const { getter } = column;
-    if (getter) {
+    if (getter && typeof getter === "function") {
       return getter(row);
     }
   }
@@ -34,7 +34,7 @@ export const determineCellValue = (row: Row, column: Column): unknown => {
 export const formatCellValue = (value: unknown, column: Column) => {
   if ("formatter" in column) {
     const { formatter } = column;
-    if (formatter) {
+    if (formatter && typeof formatter === "function") {
       return formatter(value);
     }
   }
