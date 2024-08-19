@@ -19,6 +19,7 @@ export const ColumnCell: React.FC<ColumnCellProps> = ({ column }) => {
   return (
     <th
       className="select-none cursor-pointer uppercase first:pl-5 last:pr-5 px-5 py-2 last:border-none border-r border-slate-200 dark:border-slate-800"
+      style={{ width: column.size ? column.size : "auto" }}
       onClick={() => fieldSorter(column.name)}
     >
       <div

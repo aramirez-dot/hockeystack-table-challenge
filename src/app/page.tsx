@@ -9,6 +9,7 @@ const COLUMNS: Column[] = [
     name: "URL",
     field: "url",
     align: "left",
+    size: 400,
   },
   {
     name: "Scroll",

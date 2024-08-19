@@ -8,6 +8,7 @@ export type Column = {
   getter?: Getter;
   formatter?: Formatter;
   align?: "left" | "right";
+  size?: number;
 };
 
 export type Row<T = any> = T;

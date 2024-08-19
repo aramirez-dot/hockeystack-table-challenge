@@ -77,7 +77,7 @@ export const Table: React.FC<TableProps> = ({
       }}
     >
       <Pagination />
-      <table className="table-auto w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700">
+      <table className="table-fixed w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700">
         <thead className="text-sm bg-slate-300 dark:bg-slate-950">
           <tr>{columns.map(renderTableColumn)}</tr>
         </thead>
